@@ -1,0 +1,196 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Admin {
+    id       String @id @default(cuid())
+    username String @unique
+    password String
+    role     String @default("ADMIN")
+}
+
+model Reception {
+    id          String            @id @default(cuid())
+    first_name  String
+    second_name String
+    username    String            @unique
+    password    String
+    media       Reception_media[]
+    role        String            @default("RECEPTION")
+}
+
+model Reception_media {
+    id           Int       @id @default(autoincrement())
+    url          String    @unique
+    type         String
+    reception_id String
+    reception    Reception @relation(fields: [reception_id], references: [id])
+}
+
+model Doctor {
+    id          String         @id @default(cuid())
+    firts_name  String
+    second_name String
+    third_name  String
+    description String
+    branch_id   Int
+    branch      Branch         @relation(fields: [branch_id], references: [id])
+    media       Doctor_media[]
+}
+
+model Doctor_awards {
+    id    Int                   @id @default(autoincrement())
+    title String
+    level String
+    media Doctor_awards_media[]
+}
+
+model Doctor_awards_media {
+    id               Int           @id @default(autoincrement())
+    url              String
+    type             String
+    doctor_awards_id Int
+    doctor_awards    Doctor_awards @relation(fields: [doctor_awards_id], references: [id])
+}
+
+model Doctor_media {
+    id        Int    @id @default(autoincrement())
+    url       String @unique
+    type      String
+    doctor_id String
+    doctor    Doctor @relation(fields: [doctor_id], references: [id])
+}
+
+model Branch {
+    id           Int            @id @default(autoincrement())
+    title        String
+    description  String
+    doctors      Doctor[]
+    media        Branch_media[]
+    Branch_techs Branch_techs[]
+}
+
+model Branch_media {
+    id        Int    @id @default(autoincrement())
+    url       String @unique
+    type      String
+    branch_id Int
+    branch    Branch @relation(fields: [branch_id], references: [id])
+}
+
+model Branch_techs {
+    id          Int                  @id @default(autoincrement())
+    title       String
+    description String
+    branch_id   Int
+    branch      Branch               @relation(fields: [branch_id], references: [id])
+    media       Branch_techs_media[]
+}
+
+model Branch_techs_media {
+    id              Int          @id @default(autoincrement())
+    url             String       @unique
+    type            String
+    branch_techs_id Int
+    branch_techs    Branch_techs @relation(fields: [branch_techs_id], references: [id])
+}
+
+model Patient {
+    id           String           @id @default(cuid())
+    first_name   String
+    second_name  String
+    third_name   String
+    phone_number String           @unique
+    problem      String
+    media        Partient_media[]
+}
+
+model Partient_media {
+    id         Int     @id @default(autoincrement())
+    url        String  @unique
+    type       String
+    patient_id String
+    patient    Patient @relation(fields: [patient_id], references: [id])
+}
+
+model News {
+    id             Int          @id @default(autoincrement())
+    title_uz       String
+    title_ru       String
+    title_en       String
+    description_uz String
+    description_ru String
+    description_en String
+    media          News_media[]
+}
+
+model News_media {
+    id      Int    @id @default(autoincrement())
+    url     String
+    type    String
+    news_id Int
+    news    News   @relation(fields: [news_id], references: [id])
+}
+
+model Statistics {
+    id       Int    @id @default(autoincrement())
+    title_uz String
+    title_ru String
+    title_en String
+    number   Float
+}
+
+model Gallery {
+    id       Int             @id @default(autoincrement())
+    title_uz String
+    title_ru String
+    title_en String
+    media    Gallery_media[]
+}
+
+model Gallery_media {
+    id         Int     @id @default(autoincrement())
+    url        String
+    type       String
+    gallery_id Int
+    gallery    Gallery @relation(fields: [gallery_id], references: [id])
+}
+
+model Contact {
+    id      Int    @id @default(autoincrement())
+    type    String
+    contact String
+}
+
+model About_us {
+    id         Int    @id @default(autoincrement())
+    title_uz   String
+    title_ru   String
+    title_en   String
+    content_uz String
+    content_ru String
+    content_en String
+}
+
+model Feedback {
+    id           Int    @id @default(autoincrement())
+    phone_number String
+    email        String
+    full_name    String
+    content      String
+}
+
+model Additional_info {
+    id         Int    @id @default(autoincrement())
+    title_uz   String
+    title_ru   String
+    title_en   String
+    content_uz String
+    content_ru String
+    content_en String
+}
