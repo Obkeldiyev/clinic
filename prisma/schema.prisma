@@ -33,21 +33,24 @@ model Reception_media {
 }
 
 model Doctor {
-    id          String         @id @default(cuid())
-    firts_name  String
+    id          String          @id @default(cuid())
+    first_name  String
     second_name String
     third_name  String
     description String
     branch_id   Int
-    branch      Branch         @relation(fields: [branch_id], references: [id])
+    branch      Branch          @relation(fields: [branch_id], references: [id])
     media       Doctor_media[]
+    awards      Doctor_awards[]
 }
 
 model Doctor_awards {
-    id    Int                   @id @default(autoincrement())
-    title String
-    level String
-    media Doctor_awards_media[]
+    id        Int                   @id @default(autoincrement())
+    title     String
+    level     String
+    doctor_id String
+    doctor    Doctor                @relation(fields: [doctor_id], references: [id])
+    media     Doctor_awards_media[]
 }
 
 model Doctor_awards_media {
