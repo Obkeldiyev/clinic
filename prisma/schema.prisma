@@ -74,8 +74,28 @@ model Branch {
     title        String
     description  String
     doctors      Doctor[]
+    Services     Service[]
     media        Branch_media[]
     Branch_techs Branch_techs[]
+}
+
+model Service {
+    id        Int             @id @default(autoincrement())
+    title_en  String
+    title_uz  String
+    title_ru  String
+    price     Float
+    branch_id Int
+    Branch    Branch          @relation(fields: [branch_id], references: [id])
+    media     Service_media[]
+}
+
+model Service_media {
+    id         Int     @id @default(autoincrement())
+    url        String  @unique
+    type       String
+    service_id Int
+    service    Service @relation(fields: [service_id], references: [id])
 }
 
 model Branch_media {
