@@ -190,11 +190,12 @@ model About_us {
 }
 
 model Feedback {
-    id           Int    @id @default(autoincrement())
+    id           Int     @id @default(autoincrement())
     phone_number String
     email        String
     full_name    String
     content      String
+    isApproved   Boolean @default(false)
 }
 
 model Additional_info {
