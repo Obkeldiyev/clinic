@@ -3,9 +3,11 @@ import dotenv from "dotenv"
 import router from "./routes";
 import { ErrorHandlerMiddleware } from "@middlewares";
 import path from "path";
+import cors from "cors";
 dotenv.config();
 
 const app: Application = express();
+app.use(cors())
 app.use(express.json());
 
 app.use("/uploads", express.static(path.join(process.cwd(), "src", "uploads")))
