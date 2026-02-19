@@ -173,12 +173,6 @@ model Gallery_media {
     gallery    Gallery @relation(fields: [gallery_id], references: [id])
 }
 
-model Contact {
-    id      Int    @id @default(autoincrement())
-    type    String
-    contact String
-}
-
 model About_us {
     id         Int    @id @default(autoincrement())
     title_uz   String
