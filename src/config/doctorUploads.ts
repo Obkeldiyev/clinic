@@ -2,7 +2,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const UPLOAD_DIR = path.join(process.cwd(), "uploads", "doctors");
+const UPLOAD_DIR = path.join(process.cwd(), "src", "uploads", "doctors");
 
 function ensureDir(dir: string) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });

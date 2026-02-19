@@ -14,7 +14,7 @@ export class NewsController {
             });
 
             res.status(200).send({
-                successL: true,
+                success: true,
                 message: "All news",
                 data: news
             });

@@ -2,7 +2,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
-const UPLOAD_ROOT = path.join(process.cwd(), "uploads");
+const UPLOAD_ROOT = path.join(process.cwd(), "src", "uploads"); // ✅ NOT src/uploads
 
 function ensureDir(dir: string) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -29,7 +29,10 @@ const storage = multer.diskStorage({
       .replace(/[^\w\-]+/g, "_")
       .slice(0, 40);
 
-    cb(null, `${Date.now()}_${Math.random().toString(16).slice(2)}_${safeBase}${ext}`);
+    cb(
+      null,
+      `${Date.now()}_${Math.random().toString(16).slice(2)}_${safeBase}${ext}`,
+    );
   },
 });
 
@@ -40,21 +43,26 @@ export function inferType(mimetype: string) {
   return "file";
 }
 
+/**
+ * ✅ Returns URL that you can serve as:
+ * http://domain.com/uploads/branches/xxx.png
+ */
 export function toDbUrl(file: Express.Multer.File) {
   const normalized = file.path.split(path.sep).join("/");
   const idx = normalized.lastIndexOf("/uploads/");
-  if (idx === -1) return normalized;
-  return normalized.slice(idx);
+  if (idx === -1) return "/uploads/misc/" + path.basename(normalized);
+  return normalized.slice(idx); // "/uploads/branches/...."
 }
 
 export const branchUploads = multer({
   storage,
   limits: {
-    fileSize: 2 * 1024 * 1024 * 1024,
+    fileSize: 2 * 1024 * 1024 * 1024, // 2GB per file
     files: 100,
   },
   fileFilter(req, file, cb) {
-    const ok = file.mimetype?.startsWith("image/") || file.mimetype?.startsWith("video/");
+    const ok =
+      file.mimetype?.startsWith("image/") || file.mimetype?.startsWith("video/");
     if (!ok) return cb(new Error("Only image/video files are allowed"));
     cb(null, true);
   },
