@@ -122,11 +122,11 @@ model Partient_media {
 }
 
 model PatientHistory {
-    id           String           @id @default(cuid())
+    id           String  @id @default(cuid())
     first_name   String
     second_name  String
     third_name   String?
-    phone_number String           @unique
+    phone_number String  @unique
     problem      String
 }
 
@@ -171,6 +171,12 @@ model Gallery_media {
     type       String
     gallery_id Int
     gallery    Gallery @relation(fields: [gallery_id], references: [id])
+}
+
+model Contact {
+    id      Int    @id @default(autoincrement())
+    type    String
+    contact String
 }
 
 model About_us {
