@@ -83,7 +83,7 @@ export class AdditionalInfoController {
 
             res.status(200).send({
                 success: true,
-                message: "About updated successfully",
+                message: "Adiitional info deleted successfully",
             });
         } catch (error: any) {
             next(new ErrorHandler(error.message, error.status))
