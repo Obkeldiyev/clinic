@@ -5,7 +5,6 @@ import { inferType, toDbUrl } from "src/config/branchUploads";
 
 const client = new PrismaClient({ log: ["error", "warn"] });
 
-// ---------- helpers ----------
 function safeJsonParse<T>(raw: any, fallback: T): T {
   if (!raw) return fallback;
   if (typeof raw === "object") return raw as T;
@@ -47,7 +46,6 @@ function assertBranchId(req: Request) {
   return id;
 }
 
-// ---------- controller ----------
 export class BranchController {
   static async getAllBranches(req: Request, res: Response, next: NextFunction) {
     try {
@@ -91,19 +89,6 @@ export class BranchController {
     }
   }
 
-  /**
-   * CREATE
-   * expects multipart/form-data:
-   * - title, description
-   * - services: JSON string array [{title_en,title_ru,title_uz,price}, ...]
-   * - techs: JSON string array [{title,description}, ...]
-   * Files:
-   * - branch_media (many)
-   * - service_media__0 (files for services[0])
-   * - service_media__1 (files for services[1])
-   * - tech_media__0 (files for techs[0])
-   * - tech_media__1 (files for techs[1])
-   */
   static async createBranch(req: Request, res: Response, next: NextFunction) {
     try {
       const { title, description } = req.body;
@@ -126,7 +111,6 @@ export class BranchController {
           data: { title: String(title).trim(), description: String(description).trim() },
         });
 
-        // branch media
         const branchFiles = filesByField.get("branch_media") ?? [];
         if (branchFiles.length) {
           await tx.branch_media.createMany({
@@ -138,7 +122,6 @@ export class BranchController {
           });
         }
 
-        // services + service media by index
         for (let i = 0; i < services.length; i++) {
           const s = services[i];
           const title_en = s?.title_en;
@@ -167,7 +150,6 @@ export class BranchController {
           }
         }
 
-        // techs + tech media by index
         for (let i = 0; i < techs.length; i++) {
           const t = techs[i];
           const tTitle = t?.title;
@@ -210,32 +192,6 @@ export class BranchController {
     }
   }
 
-  /**
-   * UPDATE
-   * expects multipart/form-data:
-   * - title?, description?
-   * - delete_branch_media_ids: JSON array of ints
-   * - delete_service_ids: JSON array of ints
-   * - delete_service_media_ids: JSON array of ints
-   * - delete_tech_ids: JSON array of ints
-   * - delete_tech_media_ids: JSON array of ints
-   *
-   * - services_upsert: JSON array
-   *     Existing: { id: number, title_en,title_ru,title_uz,price }
-   *     New:      { title_en,title_ru,title_uz,price }   (no id -> create)
-   *
-   * - techs_upsert: JSON array
-   *     Existing: { id: number, title, description }
-   *     New:      { title, description } (no id -> create)
-   *
-   * Files:
-   * - branch_media (adds new)
-   * - service_media__<serviceId> (adds media to existing service)
-   * - tech_media__<techId>       (adds media to existing tech)
-   * - for NEW services/techs created in this request:
-   *     service_media__new__0, service_media__new__1 ... matched to NEW services order
-   *     tech_media__new__0, tech_media__new__1 ... matched to NEW techs order
-   */
   static async editBranch(req: Request, res: Response, next: NextFunction) {
     try {
       const branchId = assertBranchId(req);
@@ -271,14 +227,12 @@ export class BranchController {
       if (!Array.isArray(techsArr)) throw new ErrorHandler("techs_upsert must be JSON array", 400);
 
       const updated = await client.$transaction(async (tx) => {
-        // delete branch media rows
         if (delBranchMediaIds.length) {
           await tx.branch_media.deleteMany({
             where: { id: { in: delBranchMediaIds }, branch_id: branchId },
           });
         }
 
-        // update branch fields
         await tx.branch.update({
           where: { id: branchId },
           data: {
@@ -288,7 +242,6 @@ export class BranchController {
           },
         });
 
-        // add new branch media
         const branchFiles = filesByField.get("branch_media") ?? [];
         if (branchFiles.length) {
           await tx.branch_media.createMany({
@@ -300,14 +253,12 @@ export class BranchController {
           });
         }
 
-        // delete service media by ids
         if (delServiceMediaIds.length) {
           await tx.service_media.deleteMany({
             where: { id: { in: delServiceMediaIds }, service: { branch_id: branchId } },
           });
         }
 
-        // delete services (and their media)
         if (delServiceIds.length) {
           await tx.service_media.deleteMany({
             where: { service_id: { in: delServiceIds }, service: { branch_id: branchId } },
@@ -317,7 +268,6 @@ export class BranchController {
           });
         }
 
-        // upsert services
         let newServiceIndex = 0;
         for (const s of servicesArr) {
           const maybeId = s?.id != null ? Number(s.id) : null;
@@ -343,7 +293,6 @@ export class BranchController {
               data: { title_en, title_ru, title_uz, price },
             });
 
-            // add media for existing service by ID: service_media__<id>
             const svcFiles = filesByField.get(`service_media__${maybeId}`) ?? [];
             if (svcFiles.length) {
               await tx.service_media.createMany({
@@ -355,12 +304,10 @@ export class BranchController {
               });
             }
           } else {
-            // create new service
             const createdService = await tx.service.create({
               data: { branch_id: branchId, title_en, title_ru, title_uz, price },
             });
 
-            // add media for new service in order: service_media__new__0,1,2...
             const svcFiles = filesByField.get(`service_media__new__${newServiceIndex}`) ?? [];
             if (svcFiles.length) {
               await tx.service_media.createMany({
@@ -376,14 +323,12 @@ export class BranchController {
           }
         }
 
-        // delete tech media by ids
         if (delTechMediaIds.length) {
           await tx.branch_techs_media.deleteMany({
             where: { id: { in: delTechMediaIds }, branch_techs: { branch_id: branchId } },
           });
         }
 
-        // delete techs (and their media)
         if (delTechIds.length) {
           await tx.branch_techs_media.deleteMany({
             where: { branch_techs_id: { in: delTechIds }, branch_techs: { branch_id: branchId } },

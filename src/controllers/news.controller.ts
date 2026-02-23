@@ -30,6 +30,9 @@ export class NewsController {
             const news = await client.news.findUnique({
                 where: {
                     id: Number(id)
+                },
+                include: {
+                    media: true,
                 }
             });
 
