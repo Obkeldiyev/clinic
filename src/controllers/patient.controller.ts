@@ -1,6 +1,7 @@
 import { ErrorHandler } from "@errors";
 import { Patient, PrismaClient } from "@prisma/client";
 import { NextFunction, Request, Response } from "express";
+import { sendPatientToTelegram } from "src/services/telegram.service";
 
 const client = new PrismaClient();
 
@@ -69,7 +70,7 @@ export class PatientController {
             } else {
                 const mediaRows = files.length > 0 ? files.map((f) => ({ type: f.mimetype, url: `/uploads/patients/${f.filename}`,})) : [];
 
-                await client.patient.create({
+                const created = await client.patient.create({
                     data: {
                         first_name,
                         second_name,
@@ -83,6 +84,25 @@ export class PatientController {
                         media: true
                     }
                 });
+
+                try {
+                    const tgMedia = files.filter((f) => f.mimetype.startsWith("image/") || f.mimetype.startsWith("video/")).map((f) => ({
+                        mimetype: f.mimetype,
+                        absPath: f.path,
+                        originalname: f.originalname
+                    }));
+
+                    await sendPatientToTelegram({
+                        first_name: created.first_name,
+                        second_name: created.second_name,
+                        third_name: created.third_name,
+                        phone_number: created.phone_number,
+                        problem: created.phone_number,
+                        media: tgMedia,
+                    });
+                } catch (error: any) {
+                    console.log("Telegram send failed:", error?.message || error)
+                }
 
                 res.status(200).send({
                     success: true,
