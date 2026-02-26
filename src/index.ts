@@ -10,7 +10,7 @@ const app: Application = express();
 app.use(cors())
 app.use(express.json());
 
-app.use("/uploads", express.static(path.join(process.cwd(), "src", "uploads")))
+app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
 app.use(router);
 
