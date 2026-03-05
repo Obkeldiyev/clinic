@@ -166,6 +166,11 @@ export class DoctorController {
                         awards: {include: {media: true}}
                     }
                 })
+
+                res.status(200).send({
+                    success: true,
+                    message: "Doctor created successfully"
+                })
             } else {
                 res.status(400).send({
                     success: false,
